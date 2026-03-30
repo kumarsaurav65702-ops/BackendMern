@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/kumarsaurav65702-ops/BackendMern#readme",
   "dependencies": {
+    "ejs": "^5.0.1",
     "express": "^5.2.1"
   }
 }
