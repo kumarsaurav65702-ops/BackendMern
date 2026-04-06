@@ -1,0 +1,9 @@
+How to set cookie
+How to use bcrypt for password encryption and decryption
+What is JWT and how to store and takeout data from JWT
+
+install some packages
+npm init
+npm i jsonwebtoken bcrypt
+npm i express
+in package.json main:index.js change into app.js
