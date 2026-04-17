@@ -14,20 +14,23 @@ app.set('view engine', 'ejs')
 app.use(express.static(path.join(__dirname, "public")))
 app.use(cookieParser())
 
+// To render index page-------------------------------
 app.get("/", (req, res) => {
     res.render("index")
 })
 
+// To render login page------------------------------
 app.get("/login", (req, res) => {
     res.render("login")
 })
-
+ 
+// Logout (clearing token and redirecting to the login page)---------------------------------
 app.get("/logout", (req, res) => {
     res.clearCookie("token");
     res.redirect("/login");
 });
 
-
+// To Register new user and set token (cookie)---------------------------------
 app.post("/register", async (req, res) => {
     let { email, username, name, password, age } = req.body;
 
@@ -51,6 +54,8 @@ app.post("/register", async (req, res) => {
     })
 
 })
+
+// To login existing user----------------------------------------
 app.post("/login", async (req, res) => {
     let { email, password } = req.body;
     let user = await userModel.findOne({ email })
@@ -65,6 +70,7 @@ app.post("/login", async (req, res) => {
     })
 })
 
+// Opening profile for the loggedIn user (protected route)----------------------------------------
 app.get('/profile', isLoggedIn, async (req, res) => {
     let user = await userModel.findOne({ email: req.user.email }).populate("posts")
 
@@ -76,6 +82,7 @@ app.get('/profile', isLoggedIn, async (req, res) => {
     }
 })
 
+// Like feature (to like or unlike the post)-----------------------------------------------
 app.get('/like/:id', isLoggedIn, async (req, res) => {
     let post = await postModel.findOne({ _id: req.params.id }).populate("user")
 
@@ -91,17 +98,18 @@ app.get('/like/:id', isLoggedIn, async (req, res) => {
 
 })
 
+// To edit the post-----------------------------------------------------
 app.get('/edit/:id', isLoggedIn, async (req, res) => {
     let post = await postModel.findOne({ _id: req.params.id }).populate("user")
         res.render("edit", {post})
 })
-
+ //To Update the post------------------------------------------------------
 app.post('/update/:id', isLoggedIn, async (req, res) => {
     let post = await postModel.findOneAndUpdate({ _id: req.params.id}, {content: req.body.content} )
         res.redirect("/profile")
 })
 
-
+// To create post (protected route)
 app.post('/post', isLoggedIn, async (req, res) => {
     let user = await userModel.findOne({ email: req.user.email });
     let { content } = req.body
@@ -114,7 +122,7 @@ app.post('/post', isLoggedIn, async (req, res) => {
     res.redirect("/profile")
 })
 
-
+// Protected route (making) 
 function isLoggedIn(req, res, next) {
 
     if (!req.cookies.token) {
