@@ -7,6 +7,10 @@ const cookieParser = require('cookie-parser')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const user = require('./models/user')
+const upload = require('./config/multerconfig')
+// const multer = require('multer')  // multer------------------------------------
+// const crypto = require('crypto') // for multer to generate random names of files
+
 
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
@@ -14,16 +18,50 @@ app.set('view engine', 'ejs')
 app.use(express.static(path.join(__dirname, "public")))
 app.use(cookieParser())
 
+
+
+// // to test multer---------------multer---------------
+// const storage = multer.diskStorage({
+//     destination: function (req, file, cb) {
+//         cb(null, './public/images/uploads')
+//     },
+//     filename: function (req, file, cb) {
+//         crypto.randomBytes(5, function (err, bytes) {
+//             const fn = bytes.toString("hex") + path.extname(file.originalname)
+//             console.log(bytes.toString("hex"));
+//             cb(null, fn)
+//         })
+//     }
+// })
+// const upload = multer({ storage: storage })
+// app.get("/test", (req, res) => {
+//     res.render("test")
+// })
+// app.post("/upload", upload.single("image"), (req, res) => {
+//     console.log(req.file);
+// })
+// // to test multer----------------multer--------------
+
+
 // To render index page-------------------------------
 app.get("/", (req, res) => {
     res.render("index")
+})
+app.get("/profile/upload", (req, res) => {
+    res.render("profileupload")
+})
+app.post("/upload", isLoggedIn, upload.single("image"),  async (req, res) => {
+  let user =  await userModel.findOne({email: req.user.email})
+  user.profilepic = req.file.filename;
+  await user.save()
+  res.redirect("/profile")
 })
 
 // To render login page------------------------------
 app.get("/login", (req, res) => {
     res.render("login")
 })
- 
+
 // Logout (clearing token and redirecting to the login page)---------------------------------
 app.get("/logout", (req, res) => {
     res.clearCookie("token");
@@ -49,7 +87,7 @@ app.post("/register", async (req, res) => {
 
             let token = jwt.sign({ email: email, userid: user._id }, 'secret')
             res.cookie("token", token)
-            res.send("registered")
+            res.redirect("/profile")
         })
     })
 
@@ -101,12 +139,12 @@ app.get('/like/:id', isLoggedIn, async (req, res) => {
 // To edit the post-----------------------------------------------------
 app.get('/edit/:id', isLoggedIn, async (req, res) => {
     let post = await postModel.findOne({ _id: req.params.id }).populate("user")
-        res.render("edit", {post})
+    res.render("edit", { post })
 })
- //To Update the post------------------------------------------------------
+//To Update the post------------------------------------------------------
 app.post('/update/:id', isLoggedIn, async (req, res) => {
-    let post = await postModel.findOneAndUpdate({ _id: req.params.id}, {content: req.body.content} )
-        res.redirect("/profile")
+    let post = await postModel.findOneAndUpdate({ _id: req.params.id }, { content: req.body.content })
+    res.redirect("/profile")
 })
 
 // To create post (protected route)
@@ -140,4 +178,4 @@ function isLoggedIn(req, res, next) {
 }
 
 
-app.listen(3000)
+app.listen(3000)   
